@@ -20,6 +20,7 @@ export const createRecurringPayment = asyncHandler(async (req, res) => {
     nextDueDate,
     startDate,
     paymentMethod = "UPI",
+    autoPay = false,
     notes = "",
   } = req.body || {};
 
@@ -60,6 +61,7 @@ export const createRecurringPayment = asyncHandler(async (req, res) => {
     frequency: cleanFrequency,
     nextDueDate: dueDate,
     paymentMethod,
+    autoPay: Boolean(autoPay),
     notes: typeof notes === "string" ? notes.trim() : "",
   });
 
@@ -117,7 +119,7 @@ export const updateRecurringPayment = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Recurring payment not found");
   }
 
-  const { name, title, amount, category, frequency, nextDueDate, paymentMethod, status, notes } =
+  const { name, title, amount, category, frequency, nextDueDate, paymentMethod, autoPay, status, notes } =
     req.body || {};
 
   if (name !== undefined || title !== undefined) {
@@ -152,6 +154,10 @@ export const updateRecurringPayment = asyncHandler(async (req, res) => {
 
   if (paymentMethod !== undefined) {
     recurring.paymentMethod = paymentMethod;
+  }
+
+  if (autoPay !== undefined) {
+    recurring.autoPay = Boolean(autoPay);
   }
 
   if (status !== undefined) {

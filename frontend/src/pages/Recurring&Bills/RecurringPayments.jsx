@@ -113,6 +113,7 @@ export default function RecurringPayments({ user, onSignOut }) {
   const {
     data: apiPayments = [],
     isLoading,
+    isSuccess,
     isError,
   } = useQuery({
     queryKey: ["recurring-payments"],
@@ -126,13 +127,19 @@ export default function RecurringPayments({ user, onSignOut }) {
     localStorage.setItem("paywise_recurring_fallback", JSON.stringify(items));
   };
 
-  // Determine active dataset (use API if has items or if backend responded with list, otherwise fallback)
+  // Determine active dataset (prefer backend data if query succeeded, otherwise fallback)
   const payments = useMemo(() => {
+    if (isSuccess && Array.isArray(apiPayments)) {
+      return apiPayments;
+    }
     if (Array.isArray(apiPayments) && apiPayments.length > 0) {
       return apiPayments;
     }
-    return localFallback;
-  }, [apiPayments, localFallback]);
+    if (isError) {
+      return localFallback;
+    }
+    return Array.isArray(apiPayments) ? apiPayments : localFallback;
+  }, [apiPayments, isSuccess, isError, localFallback]);
 
   // Calculations for Overview Cards
   const stats = useMemo(() => {
@@ -194,19 +201,18 @@ export default function RecurringPayments({ user, onSignOut }) {
   const createMutation = useMutation({
     mutationFn: createRecurringPayment,
     onSuccess: (newItem) => {
+      queryClient.invalidateQueries({ queryKey: ["recurring-payments"] });
       queryClient.setQueryData(["recurring-payments"], (old = []) => [
         ...(Array.isArray(old) ? old : []),
         newItem,
       ]);
-    },
-    onError: () => {
-      // Fallback local update if backend offline
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => updateRecurringPayment(id, data),
     onSuccess: (updatedItem) => {
+      queryClient.invalidateQueries({ queryKey: ["recurring-payments"] });
       queryClient.setQueryData(["recurring-payments"], (old = []) =>
         (Array.isArray(old) ? old : []).map((item) =>
           (item._id || item.id) === (updatedItem._id || updatedItem.id)
@@ -219,10 +225,12 @@ export default function RecurringPayments({ user, onSignOut }) {
 
   const deleteMutation = useMutation({
     mutationFn: deleteRecurringPayment,
-    onSuccess: (_, deletedId) => {
+    onSuccess: (res, deletedId) => {
+      const idToDelete = res?.deletedId || deletedId;
+      queryClient.invalidateQueries({ queryKey: ["recurring-payments"] });
       queryClient.setQueryData(["recurring-payments"], (old = []) =>
         (Array.isArray(old) ? old : []).filter(
-          (item) => (item._id || item.id) !== deletedId
+          (item) => (item._id || item.id) !== idToDelete
         )
       );
     },
@@ -232,16 +240,19 @@ export default function RecurringPayments({ user, onSignOut }) {
     mutationFn: ({ id, expectedDueDate }) =>
       markRecurringPaymentPaid(id, expectedDueDate),
     onSuccess: (result) => {
-      // Invalidate transactions so ledger is immediately synchronized!
+      // Invalidate both recurring payments and transactions so all screens stay synchronized!
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.setQueryData(["recurring-payments"], (old = []) =>
-        (Array.isArray(old) ? old : []).map((item) =>
-          (item._id || item.id) ===
-          (result?.recurringPayment?._id || result?.recurringPayment?.id)
-            ? result.recurringPayment
-            : item
-        )
-      );
+      queryClient.invalidateQueries({ queryKey: ["recurring-payments"] });
+      if (result?.recurringPayment) {
+        queryClient.setQueryData(["recurring-payments"], (old = []) =>
+          (Array.isArray(old) ? old : []).map((item) =>
+            (item._id || item.id) ===
+            (result.recurringPayment._id || result.recurringPayment.id)
+              ? result.recurringPayment
+              : item
+          )
+        );
+      }
     },
   });
 
@@ -256,44 +267,50 @@ export default function RecurringPayments({ user, onSignOut }) {
     setIsDialogOpen(true);
   };
 
+  const isMongoId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+
   const handleSubmitDialog = async (formData, editId) => {
-    if (editId) {
+    if (editId && isMongoId(editId)) {
       try {
         await updateMutation.mutateAsync({ id: editId, data: formData });
       } catch (err) {
-        // Local fallback update
         updateFallback(
           localFallback.map((item) =>
             (item._id || item.id) === editId ? { ...item, ...formData } : item
           )
         );
+        throw err;
       }
     } else {
       try {
         await createMutation.mutateAsync(formData);
+        // If this was converted from a sample item, remove it from fallback
+        if (editId) {
+          updateFallback(localFallback.filter((item) => (item._id || item.id) !== editId));
+        }
       } catch (err) {
-        // Local fallback creation
         const newItem = {
           ...formData,
           _id: "local-" + Date.now(),
           status: "active",
         };
         updateFallback([...localFallback, newItem]);
+        throw err;
       }
     }
   };
 
   const handleDeleteDialog = async (id) => {
-    try {
+    if (isMongoId(id)) {
       await deleteMutation.mutateAsync(id);
-    } catch (err) {
+    } else {
       updateFallback(localFallback.filter((item) => (item._id || item.id) !== id));
     }
   };
 
   const handleDeleteItem = async (id, payment) => {
     const name = payment?.name || payment?.title || "this commitment";
-    if (window.confirm(`Delete "${name}"?`)) {
+    if (window.confirm(`Delete “${name}”?`)) {
       await handleDeleteDialog(id);
     }
   };
@@ -301,28 +318,30 @@ export default function RecurringPayments({ user, onSignOut }) {
   const handleMarkPaid = async (id, payment) => {
     setPayingId(id);
     try {
-      await payMutation.mutateAsync({
-        id,
-        expectedDueDate: payment?.nextDueDate,
-      });
-    } catch (err) {
-      // Local advance nextDueDate for fallback
-      const currentDue = new Date(payment.nextDueDate || Date.now());
-      const nextDue = new Date(currentDue);
-      const freq = (payment.frequency || "monthly").toLowerCase();
+      if (isMongoId(id)) {
+        await payMutation.mutateAsync({
+          id,
+          expectedDueDate: payment?.nextDueDate,
+        });
+      } else {
+        // Local advance nextDueDate for sample fallback items
+        const currentDue = new Date(payment.nextDueDate || Date.now());
+        const nextDue = new Date(currentDue);
+        const freq = (payment.frequency || "monthly").toLowerCase();
 
-      if (freq === "yearly") nextDue.setFullYear(nextDue.getFullYear() + 1);
-      else if (freq === "weekly") nextDue.setDate(nextDue.getDate() + 7);
-      else if (freq === "daily") nextDue.setDate(nextDue.getDate() + 1);
-      else nextDue.setMonth(nextDue.getMonth() + 1);
+        if (freq === "yearly") nextDue.setFullYear(nextDue.getFullYear() + 1);
+        else if (freq === "weekly") nextDue.setDate(nextDue.getDate() + 7);
+        else if (freq === "daily") nextDue.setDate(nextDue.getDate() + 1);
+        else nextDue.setMonth(nextDue.getMonth() + 1);
 
-      updateFallback(
-        localFallback.map((item) =>
-          (item._id || item.id) === id
-            ? { ...item, nextDueDate: nextDue.toISOString() }
-            : item
-        )
-      );
+        updateFallback(
+          localFallback.map((item) =>
+            (item._id || item.id) === id
+              ? { ...item, nextDueDate: nextDue.toISOString() }
+              : item
+          )
+        );
+      }
     } finally {
       setPayingId(null);
     }

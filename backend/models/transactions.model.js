@@ -38,7 +38,7 @@ const transactionSchema = new Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["UPI", "Credit Card", "Debit Card", "Net Banking", "Cash", "Other"],
+      enum: ["UPI", "Credit Card", "Debit Card", "Net Banking", "Cash", "Auto-debit", "Other"],
       default: "UPI",
     },
     date: {

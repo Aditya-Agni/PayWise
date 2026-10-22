@@ -41,5 +41,8 @@ app.use("/api/v1/transactions", transactionRoutes);
 import recurringPaymentRoutes from './routes/recurringPayment.routes.js'
 app.use("/api/v1/recurring-payments", recurringPaymentRoutes);
 
+import aiRoutes from './routes/ai.routes.js'
+app.use("/api/v1/ai", aiRoutes);
+
 app.use((err, req, res, next) => errorMiddleware(err,req,res,next));
 

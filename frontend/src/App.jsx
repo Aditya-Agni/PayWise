@@ -7,6 +7,7 @@ import SignUpPage from './pages/SignUpPage.jsx';
 import HomePage from './pages/HomePage/HomePage.jsx';
 import Transactions from './pages/Transactions/Transactions.jsx';
 import RecurringPayments from './pages/Recurring&Bills/RecurringPayments.jsx';
+import PayWiseIntelligence from './pages/Analytics/PayWiseIntelligence.jsx';
 import GetStartedModal from './components/GetStartedModal.jsx';
 import { clearSession, getCurrentUser } from './services/api.js';
 import { useFinance } from './context/FinanceContext.jsx';
@@ -91,6 +92,7 @@ function App() {
       <Route path="/home" element={<ProtectedRoute {...authProps}><HomePage user={currentUser.data} onSignOut={handleSignOut} /></ProtectedRoute>} />
       <Route path="/transactions" element={<ProtectedRoute {...authProps}><Transactions user={currentUser.data} onSignOut={handleSignOut} /></ProtectedRoute>} />
       <Route path="/recurring-payments" element={<ProtectedRoute {...authProps}><RecurringPayments user={currentUser.data} onSignOut={handleSignOut} /></ProtectedRoute>} />
+      <Route path="/analytics" element={<ProtectedRoute {...authProps}><PayWiseIntelligence user={currentUser.data} onSignOut={handleSignOut} /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

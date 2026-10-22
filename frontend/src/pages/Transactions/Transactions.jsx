@@ -95,9 +95,9 @@ export default function Transactions({ user, onSignOut }) {
               Recurring & Bills
             </Link>
 
-            <button className="rounded-lg px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100">
+            <Link to="/analytics" className="rounded-lg px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100">
               Analytics
-            </button>
+            </Link>
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
