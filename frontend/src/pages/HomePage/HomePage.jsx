@@ -103,9 +103,9 @@ export default function HomePage({ user, onSignOut }) {
             <Link to="/recurring-payments" className="rounded-xl px-4 py-3 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-black">
               Recurring & Bills
             </Link>
-            <button className="rounded-xl px-4 py-3 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-black">
+            <Link to="/analytics" className="rounded-xl px-4 py-3 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-black">
               Analytics
-            </button>
+            </Link>
           </nav>
 
           <div className="flex shrink-0 items-center gap-3">

@@ -44,6 +44,10 @@ const recurringPaymentSchema = new Schema(
       enum: ["UPI", "Credit Card", "Debit Card", "Net Banking", "Cash", "Auto-debit", "Other"],
       default: "UPI",
     },
+    autoPay: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: String,
       enum: {

@@ -154,3 +154,25 @@ export const markRecurringPaymentPaid = async (id, expectedDueDate) => {
   });
   return result?.data ?? result;
 };
+
+// AI / PayWise Intelligence
+
+export const getSpendingAnalysis = async () => {
+  const result = await request({ url: "/ai/spending-analysis", method: "POST" });
+  return result?.data ?? result;
+};
+
+export const getUnusualSpending = async () => {
+  const result = await request({ url: "/ai/unusual-spending", method: "POST" });
+  return result?.data ?? result;
+};
+
+export const getRecurringForecast = async () => {
+  const result = await request({ url: "/ai/recurring-forecast", method: "POST" });
+  return result?.data ?? result;
+};
+
+export const getFinancialHealth = async () => {
+  const result = await request({ url: "/ai/financial-health", method: "POST" });
+  return result?.data ?? result;
+};
