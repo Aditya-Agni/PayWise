@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import LandingPage from './pages/LandingPage.jsx';
+import LandingPage from "./pages/LandingPage/LandingPage";
 import SignInPage from './pages/SignInPage.jsx';
 import SignUpPage from './pages/SignUpPage.jsx';
 import GetStartedModal from './components/GetStartedModal.jsx';

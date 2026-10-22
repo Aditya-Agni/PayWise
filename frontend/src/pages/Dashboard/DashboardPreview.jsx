@@ -1,4 +1,4 @@
-import Icon from './Icon.jsx';
+import Icon from "../../components/Icon.jsx";
 
 function DashboardPreview() {
   const categories = [

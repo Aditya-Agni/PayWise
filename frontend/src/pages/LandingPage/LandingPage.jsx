@@ -1,5 +1,8 @@
-import Icon from '../components/Icon.jsx';
-import DashboardPreview from '../components/DashboardPreview.jsx';
+import Icon from "../../components/Icon.jsx";   
+import DashboardPreview from "../Dashboard/DashboardPreview.jsx";
+// import Features from "./Features";
+// import About from "./About";
+// import HowItWorks from "./HowItWorks";
 
 const features = [
   { icon: 'coins', title: 'Track All Expenses', description: 'Add and manage your UPI, card, cash and online payments easily.' },
