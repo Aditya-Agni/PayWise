@@ -88,7 +88,7 @@ function App() {
       <Route path="/signin" element={<PublicRoute {...authProps}><SignInPage onSuccess={handleAuthSuccess} onNavigate={(page) => navigate(page === 'signup' ? '/signup' : '/signin')} onBack={() => navigate('/')} /></PublicRoute>} />
       <Route path="/signup" element={<PublicRoute {...authProps}><SignUpPage onSuccess={handleAuthSuccess} onNavigate={(page) => navigate(page === 'signin' ? '/signin' : '/signup')} onBack={() => navigate('/')} /></PublicRoute>} />
       <Route path="/home" element={<ProtectedRoute {...authProps}><HomePage user={currentUser.data} onSignOut={handleSignOut} /></ProtectedRoute>} />
-      <Route path="/transactions" element={<ProtectedRoute {...authProps}><Transactions /></ProtectedRoute>} />
+      <Route path="/transactions" element={<ProtectedRoute {...authProps}><Transactions user={currentUser.data} onSignOut={handleSignOut} /></ProtectedRoute>} />
       <Route path="/recurring-payments" element={<ProtectedRoute {...authProps}><ProtectedPlaceholder title="Recurring payments" /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

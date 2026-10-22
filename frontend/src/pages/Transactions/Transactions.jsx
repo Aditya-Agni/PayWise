@@ -1,12 +1,64 @@
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import TransactionsBreakdown from "./components/TransactionsBreakdown";
 import AllTransactions from "./components/AllTransactions";
+import CreateTransactionForm from "./components/CreateTransactionForm";
+import { deleteTransaction, getTransactions } from "../../services/api.js";
 
-import {
-  sampleTransactions,
-  sampleBreakdown,
-} from "./components/transactionsData";
+const chartColors = ["#C9D0FA", "#F3B29D", "#B9E2F3", "#EDE7D9", "#BDF0D9", "#D9C7F0"];
 
-export default function Transactions() {
+function createBreakdown(transactions) {
+  const totals = transactions.reduce((result, transaction) => {
+    const category = transaction.category || transaction.title || "Other";
+    result[category] = (result[category] || 0) + Math.abs(Number(transaction.amount) || 0);
+    return result;
+  }, {});
+  const total = Object.values(totals).reduce((sum, amount) => sum + amount, 0);
+  return Object.entries(totals).map(([category, amount], index) => ({
+    category,
+    amount,
+    percentage: total ? (amount / total) * 100 : 0,
+    color: chartColors[index % chartColors.length],
+  }));
+}
+
+export default function Transactions({ user, onSignOut }) {
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [typeFilter, setTypeFilter] = useState("all");
+  const queryClient = useQueryClient();
+  const transactionsQuery = useQuery({
+    queryKey: ["transactions"],
+    queryFn: getTransactions,
+    retry: false,
+  });
+  const transactions = transactionsQuery.data || [];
+  const profileInitial = (user?.username || user?.email || "P").trim().charAt(0).toUpperCase();
+  const chartTransactions = typeFilter === "all" ? transactions : transactions.filter((transaction) => transaction.type === typeFilter);
+  const breakdown = createBreakdown(chartTransactions);
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteTransaction,
+    onSuccess: (_, id) => {
+      queryClient.setQueryData(["transactions"], (current = []) => current.filter((transaction) => (transaction._id || transaction.id) !== id));
+    },
+  });
+
+  const handleCreated = (transaction) => {
+    queryClient.setQueryData(["transactions"], (current = []) => {
+      const id = transaction._id || transaction.id;
+      return editingTransaction ? current.map((item) => (item._id || item.id) === id ? transaction : item) : [transaction, ...current];
+    });
+    setShowCreateForm(false);
+    setEditingTransaction(null);
+  };
+
+  const handleDelete = (transaction) => {
+    const id = transaction._id || transaction.id;
+    if (window.confirm(`Delete “${transaction.title}”? This cannot be undone.`)) deleteMutation.mutate(id);
+  };
+
   return (
     <div className="min-h-screen bg-white text-black">
       {/* Navbar */}
@@ -31,17 +83,17 @@ export default function Transactions() {
           </div>
 
           <div className="hidden items-center gap-2 md:flex">
-            <button className="rounded-lg px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100">
+            <Link to="/home" className="rounded-lg px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100">
               Dashboard
-            </button>
+            </Link>
 
-            <button className="rounded-lg border border-black px-4 py-2 text-sm font-semibold">
+            <Link to="/transactions" className="rounded-lg border border-black px-4 py-2 text-sm font-semibold">
               Transactions
-            </button>
+            </Link>
 
-            <button className="rounded-lg px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100">
+            <Link to="/recurring-payments" className="rounded-lg px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100">
               Recurring & Bills
-            </button>
+            </Link>
 
             <button className="rounded-lg px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100">
               Analytics
@@ -53,15 +105,19 @@ export default function Transactions() {
               + Bill / Sub
             </button>
 
-            <button className="rounded-lg bg-black px-3 py-2 text-xs font-semibold text-white hover:bg-neutral-800 sm:px-4">
-              + Add Transaction
+            <button type="button" onClick={() => setShowCreateForm((visible) => !visible)} className="rounded-lg bg-black px-3 py-2 text-xs font-semibold text-white hover:bg-neutral-800 sm:px-4">
+              {showCreateForm ? "Close form" : "+ Add Transaction"}
             </button>
 
-            <button
+            <span
+              title={user?.username || user?.email || "PayWise user"}
               aria-label="User profile"
               className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-800 text-sm text-white"
             >
-              A
+              {profileInitial}
+            </span>
+            <button type="button" onClick={onSignOut} className="rounded-lg border border-neutral-300 px-3 py-2 text-xs font-medium hover:bg-neutral-100">
+              Log out
             </button>
           </div>
         </nav>
@@ -69,12 +125,21 @@ export default function Transactions() {
 
       {/* Transactions content */}
       <main className="mx-auto max-w-[1240px] space-y-4 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+        {(showCreateForm || editingTransaction) && <CreateTransactionForm transaction={editingTransaction} onCreated={handleCreated} onClose={() => { setShowCreateForm(false); setEditingTransaction(null); }} />}
+
         <TransactionsBreakdown
-          breakdown={sampleBreakdown}
-          transactionCount={sampleTransactions.length}
+          breakdown={breakdown}
+          transactionCount={chartTransactions.length}
+          animationKey={typeFilter}
         />
 
-        <AllTransactions transactions={sampleTransactions} />
+        {transactionsQuery.isPending ? (
+          <p className="rounded-xl border border-neutral-200 bg-white p-6 text-sm text-neutral-600">Loading transactions…</p>
+        ) : transactionsQuery.error ? (
+          <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">{transactionsQuery.error.message}</p>
+        ) : (
+          <AllTransactions transactions={transactions} typeFilter={typeFilter} onTypeFilterChange={setTypeFilter} onEdit={setEditingTransaction} onDelete={handleDelete} />
+        )}
       </main>
     </div>
   );

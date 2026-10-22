@@ -1,20 +1,19 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import TransactionCard from "./TransactionCard";
+import { expenseCategories, incomeCategories, transactionCategories } from "./transactionOptions.js";
 
-const categories = [
-  "All",
-  "Salary / Income",
-  "Bills & Utilities",
-  "Groceries",
-  "Food & Dining",
-  "Transportation",
-];
-
-export default function AllTransactions({ transactions = [] }) {
+export default function AllTransactions({ transactions = [], typeFilter, onTypeFilterChange, onEdit, onDelete }) {
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [sortOrder, setSortOrder] = useState("newest");
+  const categories = useMemo(() => [
+    "All",
+    ...(typeFilter === "income" ? incomeCategories : typeFilter === "expense" ? expenseCategories : transactionCategories),
+  ], [typeFilter]);
+
+  useEffect(() => {
+    if (!categories.includes(categoryFilter)) setCategoryFilter("All");
+  }, [categoryFilter, categories]);
 
   const filteredTransactions = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -96,7 +95,7 @@ export default function AllTransactions({ transactions = [] }) {
           {["all", "expense", "income"].map((type) => (
             <button
               key={type}
-              onClick={() => setTypeFilter(type)}
+              onClick={() => onTypeFilterChange(type)}
               className={`flex-1 rounded-md px-2 py-2 text-xs capitalize transition-colors ${
                 typeFilter === type
                   ? "bg-neutral-100 font-semibold text-black"
@@ -137,8 +136,10 @@ export default function AllTransactions({ transactions = [] }) {
         {filteredTransactions.length > 0 ? (
           filteredTransactions.map((transaction) => (
             <TransactionCard
-              key={transaction.id}
+              key={transaction._id || transaction.id}
               transaction={transaction}
+              onEdit={() => onEdit(transaction)}
+              onDelete={() => onDelete(transaction)}
             />
           ))
         ) : (

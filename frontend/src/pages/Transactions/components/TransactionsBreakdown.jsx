@@ -16,12 +16,13 @@ function createPieGradient(items) {
     return `${item.color} ${start}% ${currentPercentage}%`;
   });
 
-  return `conic-gradient(${slices.join(", ")})`;
+  return `conic-gradient(from -90deg, ${slices.join(", ")})`;
 }
 
 export default function TransactionsBreakdown({
   breakdown = [],
   transactionCount = 0,
+  animationKey = "all",
 }) {
   const chartBackground = createPieGradient(breakdown);
 
@@ -58,26 +59,8 @@ export default function TransactionsBreakdown({
 
         {/* Pie chart */}
         <div className="flex justify-center">
-          <div
-            role="img"
-            aria-label="Pie chart showing transaction amounts by category"
-            className="relative h-48 w-48 shrink-0 rounded-full"
-            style={{ background: chartBackground }}
-          >
-            {chartLabels.map((item) =>
-              item.percentage >= 5 ? (
-                <span
-                  key={item.category}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-neutral-800"
-                  style={{
-                    left: `${item.left}%`,
-                    top: `${item.top}%`,
-                  }}
-                >
-                  {item.percentage.toFixed(1)}%
-                </span>
-              ) : null
-            )}
+          <div className="relative h-48 w-48" role="img" aria-label="Animated pie chart showing transaction amounts by category">
+            <div key={animationKey} className="h-full w-full rounded-full" style={{ background: chartBackground, animation: "speedometer-sweep 550ms cubic-bezier(.2,.8,.2,1)" }} />
           </div>
         </div>
 
