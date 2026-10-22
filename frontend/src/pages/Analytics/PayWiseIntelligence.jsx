@@ -34,6 +34,110 @@ function daysFromNow(dateStr) {
   return `In ${diff} days`;
 }
 
+// ─── minimal SVG icons ──────────────────────────────────────────────────────
+
+const icons = {
+  health: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+    </svg>
+  ),
+  chart: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10" />
+      <line x1="12" y1="20" x2="12" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="14" />
+    </svg>
+  ),
+  search: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  ),
+  calendar: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  ),
+  wallet: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+      <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+      <path d="M18 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+    </svg>
+  ),
+  repeat: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="17 1 21 5 17 9" />
+      <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+      <polyline points="7 23 3 19 7 15" />
+      <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+    </svg>
+  ),
+  trendUp: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+      <polyline points="17 6 23 6 23 12" />
+    </svg>
+  ),
+  trendDown: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+      <polyline points="17 18 23 18 23 12" />
+    </svg>
+  ),
+  dollar: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="1" x2="12" y2="23" />
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+    </svg>
+  ),
+  hash: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="4" y1="9" x2="20" y2="9" />
+      <line x1="4" y1="15" x2="20" y2="15" />
+      <line x1="10" y1="3" x2="8" y2="21" />
+      <line x1="16" y1="3" x2="14" y2="21" />
+    </svg>
+  ),
+  list: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="8" y1="6" x2="21" y2="6" />
+      <line x1="8" y1="12" x2="21" y2="12" />
+      <line x1="8" y1="18" x2="21" y2="18" />
+      <line x1="3" y1="6" x2="3.01" y2="6" />
+      <line x1="3" y1="12" x2="3.01" y2="12" />
+      <line x1="3" y1="18" x2="3.01" y2="18" />
+    </svg>
+  ),
+  alertTriangle: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  ),
+  check: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+  ),
+  fileText: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <polyline points="10 9 9 9 8 9" />
+    </svg>
+  ),
+};
+
 // ─── sub-components ─────────────────────────────────────────────────────────
 
 function SparkLine({ value, max, color }) {
@@ -53,8 +157,8 @@ function InsightCard({ icon, label, value, sub, color = "#000", pulse = false })
     <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 flex flex-col gap-2 hover:shadow-md transition-shadow">
       <div className="flex items-center gap-2">
         <span
-          className="flex h-9 w-9 items-center justify-center rounded-xl text-xl"
-          style={{ background: color + "15" }}
+          className="flex h-9 w-9 items-center justify-center rounded-xl"
+          style={{ background: color + "15", color }}
         >
           {icon}
         </span>
@@ -97,7 +201,7 @@ function AIExplanationBubble({ text, loading, error }) {
     return (
       <div className="rounded-2xl border border-red-100 bg-red-50 p-5">
         <p className="text-sm text-red-600">
-          ⚠️ Could not generate AI insight. Make sure the backend is running with a valid Gemini API key.
+          Could not generate AI insight. Make sure the backend is running with a valid Gemini API key.
         </p>
       </div>
     );
@@ -130,7 +234,7 @@ function AIExplanationBubble({ text, loading, error }) {
 function SectionHeader({ icon, title, subtitle }) {
   return (
     <div className="flex items-start gap-3 mb-5">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-xl">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
         {icon}
       </span>
       <div>
@@ -224,10 +328,10 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
   });
 
   const tabs = [
-    { id: "health", label: "Health Score", icon: "🏅" },
-    { id: "spending", label: "Spending Analyst", icon: "📊" },
-    { id: "unusual", label: "Unusual Activity", icon: "🔍" },
-    { id: "forecast", label: "Recurring Forecast", icon: "📅" },
+    { id: "health", label: "Health Score", icon: icons.health },
+    { id: "spending", label: "Spending Analyst", icon: icons.chart },
+    { id: "unusual", label: "Unusual Activity", icon: icons.search },
+    { id: "forecast", label: "Recurring Forecast", icon: icons.calendar },
   ];
 
   return (
@@ -323,7 +427,7 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
                   : "text-neutral-500 hover:text-black"
               }`}
             >
-              <span>{tab.icon}</span>
+              <span className="opacity-70">{tab.icon}</span>
               {tab.label}
             </button>
           ))}
@@ -335,7 +439,7 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
             {/* Left: score ring + quick stats */}
             <div className="space-y-6">
               <div className="rounded-2xl border border-neutral-200 bg-white p-6 flex flex-col items-center gap-6">
-                <SectionHeader icon="🏅" title="Financial Health Score" />
+                <SectionHeader icon={icons.health} title="Financial Health Score" />
                 {healthQuery.isLoading ? (
                   <div className="h-32 w-32 rounded-full bg-neutral-100 animate-pulse" />
                 ) : healthQuery.isError ? (
@@ -377,7 +481,7 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
               {/* Quick KPIs */}
               <div className="grid grid-cols-2 gap-3">
                 <InsightCard
-                  icon="💰"
+                  icon={icons.dollar}
                   label="Savings Rate"
                   value={healthQuery.data ? `${healthQuery.data.savingsRate}%` : "—"}
                   sub="of income saved this month"
@@ -390,7 +494,7 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
                   }
                 />
                 <InsightCard
-                  icon="🔁"
+                  icon={icons.repeat}
                   label="Fixed Costs"
                   value={healthQuery.data ? `${healthQuery.data.recurringAsPercentOfIncome}%` : "—"}
                   sub="of income in recurring payments"
@@ -402,7 +506,13 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
             {/* Right: AI explanation */}
             <div className="space-y-4">
               <SectionHeader
-                icon="🤖"
+                icon={
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                    <line x1="8" y1="21" x2="16" y2="21" />
+                    <line x1="12" y1="17" x2="12" y2="21" />
+                  </svg>
+                }
                 title="AI Assessment"
                 subtitle="Personalized analysis of your financial position"
               />
@@ -451,7 +561,7 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
           <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
             <div className="space-y-5">
               <SectionHeader
-                icon="📊"
+                icon={icons.chart}
                 title="Monthly Spending Analyst"
                 subtitle={`${spendingQuery.data?.currentMonth?.name ?? "Current"} vs ${spendingQuery.data?.previousMonth?.name ?? "Previous"} month`}
               />
@@ -459,28 +569,28 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
               {/* Summary cards */}
               <div className="grid grid-cols-2 gap-3">
                 <InsightCard
-                  icon="📉"
+                  icon={icons.trendDown}
                   label={`${spendingQuery.data?.currentMonth?.name ?? "This Month"}`}
                   value={spendingQuery.data ? formatINR(spendingQuery.data.currentMonth.totalExpenses) : "—"}
                   sub="Total expenses"
                   color="#ef4444"
                 />
                 <InsightCard
-                  icon="📆"
+                  icon={icons.calendar}
                   label={`${spendingQuery.data?.previousMonth?.name ?? "Last Month"}`}
                   value={spendingQuery.data ? formatINR(spendingQuery.data.previousMonth.totalExpenses) : "—"}
                   sub="Total expenses"
                   color="#6366f1"
                 />
                 <InsightCard
-                  icon="💵"
+                  icon={icons.dollar}
                   label="Income"
                   value={spendingQuery.data ? formatINR(spendingQuery.data.currentMonth.totalIncome) : "—"}
                   sub="This month"
                   color="#10b981"
                 />
                 <InsightCard
-                  icon="🔢"
+                  icon={icons.hash}
                   label="Transactions"
                   value={spendingQuery.data?.currentMonth?.transactionCount ?? "—"}
                   sub="This month"
@@ -498,8 +608,8 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
                       : "border-emerald-100 bg-emerald-50"
                   }`}
                 >
-                  <span className="text-2xl">
-                    {spendingQuery.data.changePercent > 0 ? "📈" : "📉"}
+                  <span className="text-neutral-600">
+                    {spendingQuery.data.changePercent > 0 ? icons.trendUp : icons.trendDown}
                   </span>
                   <div>
                     <p className="text-sm font-semibold text-black">
@@ -565,7 +675,7 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
           <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
             <div className="space-y-5">
               <SectionHeader
-                icon="🔍"
+                icon={icons.search}
                 title="Unusual Spending Detection"
                 subtitle="Transactions that stand out vs your historical patterns"
               />
@@ -580,13 +690,13 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
 
               {unusualQuery.isError && (
                 <p className="text-sm text-red-500 rounded-2xl border border-red-100 bg-red-50 p-4">
-                  ⚠️ Could not analyze transactions. Ensure the backend is running.
+                  Could not analyze transactions. Ensure the backend is running.
                 </p>
               )}
 
               {unusualQuery.data && !unusualQuery.data.hasEnoughData && (
                 <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6 text-center">
-                  <p className="text-3xl mb-2">📝</p>
+                  <span className="flex justify-center mb-3 text-neutral-400">{icons.fileText}</span>
                   <p className="text-sm font-medium text-neutral-600">
                     Not enough transaction history yet. Add more transactions to unlock this feature.
                   </p>
@@ -595,7 +705,7 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
 
               {unusualQuery.data?.hasEnoughData && unusualQuery.data.anomalies.length === 0 && (
                 <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-6 text-center">
-                  <p className="text-3xl mb-2">✅</p>
+                  <span className="flex justify-center mb-3 text-emerald-600">{icons.check}</span>
                   <p className="text-sm font-medium text-emerald-700">
                     No unusual spending detected this month. Your patterns look normal!
                   </p>
@@ -646,21 +756,21 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
           <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
             <div className="space-y-5">
               <SectionHeader
-                icon="📅"
+                icon={icons.calendar}
                 title="Recurring Payment Forecast"
                 subtitle="Upcoming commitments and monthly cost breakdown"
               />
 
               <div className="grid grid-cols-2 gap-3">
                 <InsightCard
-                  icon="🔁"
+                  icon={icons.repeat}
                   label="Monthly Total"
                   value={forecastQuery.data ? formatINR(forecastQuery.data.totalMonthly) : "—"}
                   sub="Estimated monthly outflow"
                   color="#6366f1"
                 />
                 <InsightCard
-                  icon="📋"
+                  icon={icons.list}
                   label="Active"
                   value={forecastQuery.data?.totalCount ?? "—"}
                   sub="Recurring commitments"
@@ -670,7 +780,7 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
 
               {forecastQuery.data?.overdueCount > 0 && (
                 <div className="rounded-2xl border border-red-200 bg-red-50 p-4 flex items-center gap-3">
-                  <span className="text-2xl">⚠️</span>
+                  <span className="text-red-500">{icons.alertTriangle}</span>
                   <div>
                     <p className="text-sm font-semibold text-red-700">
                       {forecastQuery.data.overdueCount} overdue payment{forecastQuery.data.overdueCount !== 1 ? "s" : ""}
@@ -690,7 +800,7 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
 
               {forecastQuery.data?.dueThisWeek?.length === 0 && !forecastQuery.isLoading && (
                 <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5 text-center">
-                  <p className="text-3xl mb-1">🎉</p>
+                  <span className="flex justify-center mb-2 text-neutral-400">{icons.check}</span>
                   <p className="text-sm text-neutral-500">Nothing due this week!</p>
                 </div>
               )}
@@ -700,8 +810,8 @@ export default function PayWiseIntelligence({ user, onSignOut }) {
                   key={item._id}
                   className="rounded-2xl border border-neutral-200 bg-white p-4 flex items-center gap-3 hover:shadow-sm transition-shadow"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xl">
-                    📅
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
+                    {icons.calendar}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-neutral-800 truncate">{item.name}</p>
