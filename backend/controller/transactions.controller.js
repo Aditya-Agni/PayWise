@@ -231,4 +231,23 @@ export const deleteTransaction = asyncHandler(async (req, res) => {
     );
 });
 
+/**
+ * @desc    Get all transactions for a user
+ * @route   GET /api/v1/transactions
+ * @access  Private
+ */
+export const getAllTransactions = asyncHandler(async (req, res) => {
+  const userId = req.user?._id || req.body?.userId || req.query?.userId;
+
+  if (!userId) {
+    throw new ApiError(401, "User authentication is required");
+  }
+
+  const transactions = await Transaction.find({ user: userId }).sort({ date: -1 });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "All transactions fetched successfully", transactions));
+});
+
 export default createTransaction;

@@ -3,12 +3,15 @@ import {
   createTransaction,
   editTransaction,
   deleteTransaction,
+  getAllTransactions,
 } from "../controller/transactions.controller.js";
 import { verifyTokens } from "../middleware/verifyToken.middleware.js";
 
 const router = Router();
 
 // Transaction routes (protected by verifyTokens)
+// router.route("/").get(verifyTokens, getAllTransactions);
+router.route("/get-all-transactions").get(verifyTokens, getAllTransactions);
 router.route("/transaction-add").post(verifyTokens, createTransaction);
 router
   .route("/transaction-edit/:id")
