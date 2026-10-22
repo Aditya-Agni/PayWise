@@ -6,6 +6,7 @@ import SignInPage from './pages/SignInPage.jsx';
 import SignUpPage from './pages/SignUpPage.jsx';
 import HomePage from './pages/HomePage/HomePage.jsx';
 import Transactions from './pages/Transactions/Transactions.jsx';
+import RecurringPayments from './pages/Recurring&Bills/RecurringPayments.jsx';
 import GetStartedModal from './components/GetStartedModal.jsx';
 import { clearSession, getCurrentUser } from './services/api.js';
 import { useFinance } from './context/FinanceContext.jsx';
@@ -67,7 +68,7 @@ function App() {
 
   const handleAuthSuccess = useCallback(async (user) => {
     queryClient.setQueryData(['auth', 'current-user'], user);
-    refreshFinanceData().catch(() => {});
+    refreshFinanceData().catch(() => { });
     navigate('/home', { replace: true });
   }, [navigate, queryClient, refreshFinanceData]);
 
@@ -89,7 +90,7 @@ function App() {
       <Route path="/signup" element={<PublicRoute {...authProps}><SignUpPage onSuccess={handleAuthSuccess} onNavigate={(page) => navigate(page === 'signin' ? '/signin' : '/signup')} onBack={() => navigate('/')} /></PublicRoute>} />
       <Route path="/home" element={<ProtectedRoute {...authProps}><HomePage user={currentUser.data} onSignOut={handleSignOut} /></ProtectedRoute>} />
       <Route path="/transactions" element={<ProtectedRoute {...authProps}><Transactions user={currentUser.data} onSignOut={handleSignOut} /></ProtectedRoute>} />
-      <Route path="/recurring-payments" element={<ProtectedRoute {...authProps}><ProtectedPlaceholder title="Recurring payments" /></ProtectedRoute>} />
+      <Route path="/recurring-payments" element={<ProtectedRoute {...authProps}><RecurringPayments user={currentUser.data} onSignOut={handleSignOut} /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
