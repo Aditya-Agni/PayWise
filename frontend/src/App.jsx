@@ -5,9 +5,12 @@ import LandingPage from './pages/LandingPage/LandingPage';
 import SignInPage from './pages/SignInPage.jsx';
 import SignUpPage from './pages/SignUpPage.jsx';
 import HomePage from './pages/HomePage/HomePage.jsx';
+import Transactions from './pages/Transactions/Transactions.jsx';
 import GetStartedModal from './components/GetStartedModal.jsx';
 import { clearSession, getCurrentUser } from './services/api.js';
 import { useFinance } from './context/FinanceContext.jsx';
+
+
 
 function PageLoader() {
   return <main className="grid min-h-screen place-items-center bg-white text-sm text-neutral-600">Loading PayWise…</main>;
@@ -85,7 +88,7 @@ function App() {
       <Route path="/signin" element={<PublicRoute {...authProps}><SignInPage onSuccess={handleAuthSuccess} onNavigate={(page) => navigate(page === 'signup' ? '/signup' : '/signin')} onBack={() => navigate('/')} /></PublicRoute>} />
       <Route path="/signup" element={<PublicRoute {...authProps}><SignUpPage onSuccess={handleAuthSuccess} onNavigate={(page) => navigate(page === 'signin' ? '/signin' : '/signup')} onBack={() => navigate('/')} /></PublicRoute>} />
       <Route path="/home" element={<ProtectedRoute {...authProps}><HomePage user={currentUser.data} onSignOut={handleSignOut} /></ProtectedRoute>} />
-      <Route path="/transactions" element={<ProtectedRoute {...authProps}><ProtectedPlaceholder title="Transactions" /></ProtectedRoute>} />
+      <Route path="/transactions" element={<ProtectedRoute {...authProps}><Transactions /></ProtectedRoute>} />
       <Route path="/recurring-payments" element={<ProtectedRoute {...authProps}><ProtectedPlaceholder title="Recurring payments" /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
