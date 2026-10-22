@@ -26,3 +26,8 @@ button, a {
   color: white;
   background: #111;
 }
+
+@keyframes speedometer-sweep {
+  from { transform: rotate(-68deg) scale(0.92); opacity: 0.35; }
+  to { transform: rotate(0deg) scale(1); opacity: 1; }
+}

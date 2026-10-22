@@ -76,31 +76,39 @@ export const getCurrentUser = async () => {
 
 // Transactions
 
-export const getTransactions = () =>
-  request({
-    url: "/transactions",
+export const getTransactions = async () => {
+  const result = await request({
+    url: "/transactions/get-all-transactions",
     method: "GET",
   });
+  return result.data;
+};
 
-export const createTransaction = (details) =>
-  request({
-    url: "/transactions",
+export const createTransaction = async (details) => {
+  const result = await request({
+    url: "/transactions/transaction-add",
     method: "POST",
     data: details,
   });
+  return result.data;
+};
 
-export const updateTransaction = (id, details) =>
-  request({
-    url: `/transactions/${id}`,
+export const updateTransaction = async (id, details) => {
+  const result = await request({
+    url: `/transactions/transaction-edit/${id}`,
     method: "PUT",
     data: details,
   });
+  return result.data;
+};
 
-export const deleteTransaction = (id) =>
-  request({
-    url: `/transactions/${id}`,
+export const deleteTransaction = async (id) => {
+  const result = await request({
+    url: `/transactions/transaction-delete/${id}`,
     method: "DELETE",
   });
+  return result.data;
+};
 
 // Recurring payments
 
