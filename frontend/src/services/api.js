@@ -20,8 +20,8 @@ async function request(config) {
     if (error.response) {
       throw new Error(
         error.response.data?.message ||
-          error.response.data?.error ||
-          `Request failed (${error.response.status}).`
+        error.response.data?.error ||
+        `Request failed (${error.response.status}).`
       );
     }
 
@@ -104,35 +104,45 @@ export const deleteTransaction = (id) =>
 
 // Recurring payments
 
-export const getRecurringPayments = () =>
-  request({
+export const getRecurringPayments = async () => {
+  const result = await request({
     url: "/recurring-payments",
     method: "GET",
   });
+  return result?.data ?? result;
+};
 
-export const createRecurringPayment = (details) =>
-  request({
+export const createRecurringPayment = async (details) => {
+  const result = await request({
     url: "/recurring-payments",
     method: "POST",
     data: details,
   });
+  return result?.data ?? result;
+};
 
-export const updateRecurringPayment = (id, details) =>
-  request({
+export const updateRecurringPayment = async (id, details) => {
+  const result = await request({
     url: `/recurring-payments/${id}`,
     method: "PUT",
     data: details,
   });
+  return result?.data ?? result;
+};
 
-export const deleteRecurringPayment = (id) =>
-  request({
+export const deleteRecurringPayment = async (id) => {
+  const result = await request({
     url: `/recurring-payments/${id}`,
     method: "DELETE",
   });
+  return result?.data ?? result;
+};
 
-export const markRecurringPaymentPaid = (id, expectedDueDate) =>
-  request({
+export const markRecurringPaymentPaid = async (id, expectedDueDate) => {
+  const result = await request({
     url: `/recurring-payments/${id}/pay`,
     method: "POST",
     data: { expectedDueDate },
   });
+  return result?.data ?? result;
+};
