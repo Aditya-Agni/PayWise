@@ -278,3 +278,19 @@ export const markRecurringPaymentPaid = asyncHandler(async (req, res) => {
     })
   );
 });
+
+/**
+ * @desc    Manually trigger upcoming due alerts check (for testing or admin verification)
+ * @route   POST /api/v1/recurring-payments/trigger-alerts
+ * @access  Private
+ */
+export const triggerDueAlerts = asyncHandler(async (req, res) => {
+  const daysAhead = Number(req.query.daysAhead) || 3;
+  const { checkAndSendDueAlerts } = await import("../services/alert.service.js");
+  const result = await checkAndSendDueAlerts(daysAhead);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Alerts check executed successfully", result));
+});
+

@@ -5,6 +5,7 @@ import {
   updateRecurringPayment,
   deleteRecurringPayment,
   markRecurringPaymentPaid,
+  triggerDueAlerts,
 } from "../controller/recurringPayment.controller.js";
 import { verifyTokens } from "../middleware/verifyToken.middleware.js";
 
@@ -18,6 +19,8 @@ router
 
 router.route("/get-all").get(verifyTokens, getAllRecurringPayments);
 router.route("/recurring-add").post(verifyTokens, createRecurringPayment);
+
+router.route("/trigger-alerts").post(verifyTokens, triggerDueAlerts);
 
 router.route("/:id/pay").post(verifyTokens, markRecurringPaymentPaid);
 
