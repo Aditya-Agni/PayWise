@@ -1,6 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import {
-  getAuthToken,
   getTransactions,
   createTransaction as apiCreateTransaction,
   updateTransaction as apiUpdateTransaction,
@@ -21,11 +20,6 @@ export function FinanceProvider({ children }) {
   const [error, setError] = useState('');
 
   const refreshFinanceData = useCallback(async () => {
-    if (!getAuthToken()) {
-      setTransactions([]);
-      setRecurringPayments([]);
-      return;
-    }
     setLoading(true);
     setError('');
     try {
@@ -38,10 +32,6 @@ export function FinanceProvider({ children }) {
       setLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    if (getAuthToken()) refreshFinanceData();
-  }, [refreshFinanceData]);
 
   const addTransaction = useCallback(async (details) => {
     const created = await apiCreateTransaction(details);

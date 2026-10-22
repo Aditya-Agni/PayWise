@@ -3,6 +3,7 @@ import SpendingCategory from "./components/SpendingCategory";
 import UpcomingCommitments from "./components/UpcomingCommitments";
 import RecentTransactions from "./components/RecentTransactions";
 import QuickActions from "./components/QuickActions";
+import { Link } from "react-router-dom";
 
 // Dummy data for now; later this can come from the backend.
 const overviewData = {
@@ -75,31 +76,33 @@ const sampleTransactions = [
   },
 ];
 
-export default function HomePage() {
+export default function HomePage({ user, onSignOut }) {
+  const profileInitial = (user?.username || user?.email || "P").trim().charAt(0).toUpperCase();
+
   return (
     <div className="min-h-screen bg-white text-black">
       {/* Navbar */}
       <header className="border-b border-neutral-200">
         <div className="mx-auto flex min-h-[72px] max-w-[1440px] items-center justify-between gap-4 px-5 lg:px-10">
-          <a href="/" className="flex shrink-0 items-center gap-3">
+          <Link to="/home" className="flex shrink-0 items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-black text-sm font-bold text-white">
               PW
             </span>
             <span className="text-2xl font-bold tracking-tight">
               PayWise
             </span>
-          </a>
+          </Link>
 
           <nav className="hidden items-center gap-2 lg:flex">
-            <button className="rounded-xl bg-neutral-100 px-5 py-3 text-sm font-semibold">
+            <Link to="/home" className="rounded-xl bg-neutral-100 px-5 py-3 text-sm font-semibold">
               Dashboard
-            </button>
-            <button className="rounded-xl px-4 py-3 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-black">
+            </Link>
+            <Link to="/transactions" className="rounded-xl px-4 py-3 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-black">
               Transactions
-            </button>
-            <button className="rounded-xl px-4 py-3 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-black">
+            </Link>
+            <Link to="/recurring-payments" className="rounded-xl px-4 py-3 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-black">
               Recurring & Bills
-            </button>
+            </Link>
             <button className="rounded-xl px-4 py-3 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-black">
               Analytics
             </button>
@@ -115,11 +118,19 @@ export default function HomePage() {
               <span className="sm:hidden">Add</span>
             </button>
 
-            <button
+            <span
+              title={user?.username || user?.email || "PayWise user"}
               aria-label="User profile"
               className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-800 text-white"
             >
-              A
+              {profileInitial}
+            </span>
+            <button
+              type="button"
+              onClick={onSignOut}
+              className="rounded-lg border border-neutral-300 px-3 py-2.5 text-sm font-medium hover:bg-neutral-100"
+            >
+              Log out
             </button>
           </div>
         </div>

@@ -1,56 +1,138 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-const TOKEN_KEY = 'paywise_token';
-const USER_KEY = 'paywise_user';
+import axios from "axios";
 
-export function saveSession(token, user) {
-  localStorage.setItem(TOKEN_KEY, token);
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
-}
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
 
-export function clearSession() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
-}
+export const api = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-export function getAuthToken() {
-  return localStorage.getItem(TOKEN_KEY);
-}
-
-export function getStoredUser() {
+// Handle API errors consistently
+async function request(config) {
   try {
-    return JSON.parse(localStorage.getItem(USER_KEY) || 'null');
-  } catch {
-    return null;
+    const response = await api.request(config);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data?.message ||
+          error.response.data?.error ||
+          `Request failed (${error.response.status}).`
+      );
+    }
+
+    if (error.request) {
+      throw new Error(
+        `Cannot connect to the PayWise backend at ${API_BASE_URL}. Make sure the backend is running.`
+      );
+    }
+
+    throw new Error(error.message || "Something went wrong.");
   }
 }
 
-async function request(path, options = {}) {
-  const token = getAuthToken();
-  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-  if (token) headers.Authorization = `Bearer ${token}`;
+// Authentication
 
-  let response;
-  try {
-    response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
-  } catch {
-    throw new Error(`Cannot connect to the PayWise backend at ${API_BASE_URL}. Make sure the backend server is running.`);
-  }
+export const signUp = async (details) => {
+  const result = await request({
+    url: "/user/register",
+    method: "POST",
+    data: {
+      username: details.username,
+      email: details.email,
+      password: details.password,
+    },
+  });
+  return { user: result.data };
+};
 
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(result.error || `Request failed (${response.status}).`);
-  return result;
-}
+export const signIn = async (details) => {
+  const identifier = (
+    details.identifier ??
+    details.login ??
+    details.username ??
+    details.email ??
+    ""
+  ).trim();
 
-export const signUp = (details) => request('/api/auth/signup', { method: 'POST', body: JSON.stringify(details) });
-export const signIn = (details) => request('/api/auth/signin', { method: 'POST', body: JSON.stringify(details) });
+  const result = await request({
+    url: "/user/login",
+    method: "POST",
+    data: { login: identifier, password: details.password },
+  });
+  return { user: result.data };
+};
 
-export const getTransactions = () => request('/api/transactions');
-export const createTransaction = (details) => request('/api/transactions', { method: 'POST', body: JSON.stringify(details) });
-export const updateTransaction = (id, details) => request(`/api/transactions/${id}`, { method: 'PUT', body: JSON.stringify(details) });
-export const deleteTransaction = (id) => request(`/api/transactions/${id}`, { method: 'DELETE' });
+export const clearSession = () => request({ url: "/user/logout", method: "POST" });
 
-export const getRecurringPayments = () => request('/api/recurring-payments');
-export const createRecurringPayment = (details) => request('/api/recurring-payments', { method: 'POST', body: JSON.stringify(details) });
-export const updateRecurringPayment = (id, details) => request(`/api/recurring-payments/${id}`, { method: 'PUT', body: JSON.stringify(details) });
-export const deleteRecurringPayment = (id) => request(`/api/recurring-payments/${id}`, { method: 'DELETE' });
-export const markRecurringPaymentPaid = (id, expectedDueDate) => request(`/api/recurring-payments/${id}/pay`, { method: 'POST', body: JSON.stringify({ expectedDueDate }) });
+export const getCurrentUser = async () => {
+  const result = await request({ url: "/user/current-user", method: "GET" });
+  return result.data;
+};
+
+// Transactions
+
+export const getTransactions = () =>
+  request({
+    url: "/transactions",
+    method: "GET",
+  });
+
+export const createTransaction = (details) =>
+  request({
+    url: "/transactions",
+    method: "POST",
+    data: details,
+  });
+
+export const updateTransaction = (id, details) =>
+  request({
+    url: `/transactions/${id}`,
+    method: "PUT",
+    data: details,
+  });
+
+export const deleteTransaction = (id) =>
+  request({
+    url: `/transactions/${id}`,
+    method: "DELETE",
+  });
+
+// Recurring payments
+
+export const getRecurringPayments = () =>
+  request({
+    url: "/recurring-payments",
+    method: "GET",
+  });
+
+export const createRecurringPayment = (details) =>
+  request({
+    url: "/recurring-payments",
+    method: "POST",
+    data: details,
+  });
+
+export const updateRecurringPayment = (id, details) =>
+  request({
+    url: `/recurring-payments/${id}`,
+    method: "PUT",
+    data: details,
+  });
+
+export const deleteRecurringPayment = (id) =>
+  request({
+    url: `/recurring-payments/${id}`,
+    method: "DELETE",
+  });
+
+export const markRecurringPaymentPaid = (id, expectedDueDate) =>
+  request({
+    url: `/recurring-payments/${id}/pay`,
+    method: "POST",
+    data: { expectedDueDate },
+  });

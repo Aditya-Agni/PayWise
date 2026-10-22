@@ -1,10 +1,15 @@
-import { decode } from "jsonwebtoken";
 import { User } from "../models/users.model.js";
 import { ApiError } from "../utils/ApiErrorHandler.js";
 import { ApiResponse } from "../utils/ApiResponseHandler.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 10 * 24 * 60 * 60 * 1000,
+};
 
 const generateRefreshAndAcessToken = async (user) => {
   // const user = await User.findById(userId)
@@ -44,13 +49,13 @@ export const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(500, "failed to register user");
   }
 
-  const registeredUser = {
-    username,
-    email,
-  };
+  const { refreshToken, accessToken } = await generateRefreshAndAcessToken(user);
+  const registeredUser = { _id: user._id, username: user.username, email: user.email };
 
   res
     .status(200)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .cookie("accessToken", accessToken, cookieOptions)
     .json(new ApiResponse(200, "registered user successfully", registeredUser));
 });
 
@@ -79,23 +84,16 @@ export const loginUser = asyncHandler(async (req, res) => {
   const { refreshToken, accessToken } =
     await generateRefreshAndAcessToken(user);
   const loggedInUser = {
+    _id: user._id,
     username: user.username,
     email: user.email,
     avatar: user.avatar,
-    refreshToken,
-    accessToken,
-  };
-
-  const options = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
   };
 
   res
     .status(200)
-    .cookie("refreshToken", refreshToken, options)
-    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .cookie("accessToken", accessToken, cookieOptions)
     .json(new ApiResponse(200, "user is logged in successfully", loggedInUser));
 });
 
@@ -113,23 +111,24 @@ export const logOutUser = asyncHandler(async (req, res) => {
     },
   );
 
-  const options = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-  };
-
   res
     .status(200)
-    .clearCookie("refreshToken", options)
-    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", cookieOptions)
+    .clearCookie("accessToken", cookieOptions)
     .json(new ApiResponse(200, "user logged out successfully"));
 });
 
-export const currentUser = asyncHandler(async (req, res) => {
+export const getCurrentUser = asyncHandler(async (req, res) => {
   const user = req.user;
 
-  res.status(200).json(new ApiResponse(200, "current user found", user));
+  res.status(200).json(new ApiResponse(200, "current user found", {
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    avatar: user.avatar,
+    currency: user.currency,
+    monthlyBudget: user.monthlyBudget,
+  }));
 });
 
 export const refreshTokens = asyncHandler(async (req, res) => {
@@ -168,15 +167,10 @@ export const refreshTokens = asyncHandler(async (req, res) => {
     accessToken,
   };
 
-  const options = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-  };
   res
     .status(200)
-    .cookie("refreshToken", refreshToken, options)
-    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .cookie("accessToken", accessToken, cookieOptions)
     .json(new ApiResponse(200, "refreshed tokens successfully", response));
 });
 
@@ -186,14 +180,9 @@ export const deleteUser = asyncHandler(async (req, res) => {
 
   await User.findByIdAndDelete({ _id: user._id });
 
-  const options = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-  };
   res
     .status(200)
-    .clearCookie("refreshToken", options)
-    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", cookieOptions)
+    .clearCookie("accessToken", cookieOptions)
     .json(new ApiResponse(200, "user deleted"));
 });
