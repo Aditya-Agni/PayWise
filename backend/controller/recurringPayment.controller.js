@@ -291,9 +291,9 @@ export const markRecurringPaymentPaid = asyncHandler(async (req, res) => {
  * @access  Private
  */
 export const triggerDueAlerts = asyncHandler(async (req, res) => {
-  const daysAhead = Number(req.query.daysAhead) || 3;
+  const daysAhead = Math.min(30, Math.max(0, Number(req.query.daysAhead) || 3));
   const { checkAndSendDueAlerts } = await import("../services/alert.service.js");
-  const result = await checkAndSendDueAlerts(daysAhead);
+  const result = await checkAndSendDueAlerts(daysAhead, req.user?._id);
 
   return res
     .status(200)

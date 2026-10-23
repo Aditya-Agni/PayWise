@@ -1,185 +1,83 @@
-import { useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
-import {
-  getTransactions,
-  getRecurringPayments,
-  markRecurringPaymentPaid,
-} from "../../services/api.js";
 import FinancialOverview from "./components/FinancialOverview";
 import SpendingCategory from "./components/SpendingCategory";
 import UpcomingCommitments from "./components/UpcomingCommitments";
 import RecentTransactions from "./components/RecentTransactions";
 import QuickActions from "./components/QuickActions";
+import { Link } from "react-router-dom";
 
-// ─── helpers ────────────────────────────────────────────────────────────────
+// Dummy data for now; later this can come from the backend.
+const overviewData = {
+  totalExpenses: 28630,
+  totalIncome: 100000,
+  netBalance: 71370,
+  monthlySubscriptions: 17578,
+  transactionCount: 6,
+  activeBills: 4,
+};
 
-function isThisMonth(dateStr) {
-  const d = new Date(dateStr);
-  const now = new Date();
-  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-}
+const sampleCategories = [
+  { name: "Bills & Utilities", amount: 22000, percentage: 76.8 },
+  { name: "Groceries", amount: 3450, percentage: 12.1 },
+  { name: "Transportation", amount: 2500, percentage: 8.7 },
+  { name: "Food & Dining", amount: 680, percentage: 2.4 },
+];
 
-function dueLabel(nextDueDate) {
-  const diff = Math.ceil(
-    (new Date(nextDueDate).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) /
-      (1000 * 60 * 60 * 24)
-  );
-  if (diff < 0) return "Overdue";
-  if (diff === 0) return "Due Today";
-  if (diff === 1) return "Due Tomorrow";
-  return `Due in ${diff}d`;
-}
+const sampleCommitments = [
+  {
+    id: 1,
+    name: "Netflix Premium (4K UHD)",
+    amount: 649,
+    frequency: "monthly",
+    dueLabel: "Due in 3d",
+    type: "subscription",
+  },
+  {
+    id: 2,
+    name: "JioFiber Broadband Gigabit",
+    amount: 1179,
+    frequency: "monthly",
+    dueLabel: "Due Today",
+    type: "internet",
+  },
+  {
+    id: 3,
+    name: "Cult.fit Gym & Fitness Pass",
+    amount: 1250,
+    frequency: "monthly",
+    dueLabel: "Overdue",
+    type: "gym",
+  },
+];
 
-// ─── component ──────────────────────────────────────────────────────────────
+const sampleTransactions = [
+  {
+    id: 1,
+    title: "Freelance UI Design",
+    category: "Salary / Income",
+    date: "21 Oct 2026",
+    amount: 15000,
+    type: "income",
+  },
+  {
+    id: 2,
+    title: "Fuel - Shell Petrol Pump",
+    category: "Transportation",
+    date: "20 Oct 2026",
+    amount: -2500,
+    type: "expense",
+  },
+  {
+    id: 3,
+    title: "Blue Tokai Coffee & Bakery",
+    category: "Food & Dining",
+    date: "18 Oct 2026",
+    amount: -680,
+    type: "expense",
+  },
+];
 
 export default function HomePage({ user, onSignOut }) {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-
-  const profileInitial = (user?.username || user?.email || "P")
-    .trim()
-    .charAt(0)
-    .toUpperCase();
-
-  // ── Data fetching ───────────────────────────────────────────────────────
-  const {
-    data: transactions = [],
-    isLoading: txLoading,
-  } = useQuery({
-    queryKey: ["transactions"],
-    queryFn: getTransactions,
-    staleTime: 2 * 60 * 1000,
-  });
-
-  const {
-    data: recurringPayments = [],
-    isLoading: rpLoading,
-  } = useQuery({
-    queryKey: ["recurringPayments"],
-    queryFn: getRecurringPayments,
-    staleTime: 2 * 60 * 1000,
-  });
-
-  // ── Derived data ────────────────────────────────────────────────────────
-  const overviewData = useMemo(() => {
-    const monthlyTx = Array.isArray(transactions)
-      ? transactions.filter((t) => isThisMonth(t.date))
-      : [];
-
-    const totalExpenses = monthlyTx
-      .filter((t) => t.type === "expense")
-      .reduce((sum, t) => sum + (t.amount ?? 0), 0);
-
-    const totalIncome = monthlyTx
-      .filter((t) => t.type === "income")
-      .reduce((sum, t) => sum + (t.amount ?? 0), 0);
-
-    const activeRecurring = Array.isArray(recurringPayments)
-      ? recurringPayments.filter((r) => r.status === "active")
-      : [];
-
-    // Normalize every recurring to monthly cost for the subscriptions card
-    const monthlySubscriptions = activeRecurring.reduce((sum, r) => {
-      const amt = r.amount ?? 0;
-      switch (r.frequency) {
-        case "daily":
-          return sum + amt * 30;
-        case "weekly":
-          return sum + amt * 4;
-        case "yearly":
-          return sum + amt / 12;
-        default:
-          return sum + amt;
-      }
-    }, 0);
-
-    return {
-      totalExpenses,
-      totalIncome,
-      netBalance: totalIncome - totalExpenses,
-      monthlySubscriptions: Math.round(monthlySubscriptions),
-      transactionCount: monthlyTx.length,
-      activeBills: activeRecurring.length,
-    };
-  }, [transactions, recurringPayments]);
-
-  const categories = useMemo(() => {
-    const monthlyExpenses = Array.isArray(transactions)
-      ? transactions.filter((t) => t.type === "expense" && isThisMonth(t.date))
-      : [];
-    const total = monthlyExpenses.reduce((s, t) => s + (t.amount ?? 0), 0);
-
-    const map = {};
-    monthlyExpenses.forEach((t) => {
-      const cat = t.category || "Other";
-      map[cat] = (map[cat] || 0) + (t.amount ?? 0);
-    });
-
-    return Object.entries(map)
-      .map(([name, amount]) => ({
-        name,
-        amount,
-        percentage: total > 0 ? parseFloat(((amount / total) * 100).toFixed(1)) : 0,
-      }))
-      .sort((a, b) => b.amount - a.amount);
-  }, [transactions]);
-
-  const recentTransactions = useMemo(() => {
-    if (!Array.isArray(transactions)) return [];
-    return transactions.slice(0, 5).map((t) => ({
-      id: t._id,
-      title: t.title,
-      category: t.category,
-      date: new Date(t.date).toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }),
-      amount: t.type === "expense" ? -(t.amount ?? 0) : t.amount ?? 0,
-      type: t.type,
-    }));
-  }, [transactions]);
-
-  const upcomingCommitments = useMemo(() => {
-    if (!Array.isArray(recurringPayments)) return [];
-    const now = new Date();
-    const weekAhead = new Date(now);
-    weekAhead.setDate(weekAhead.getDate() + 7);
-
-    return recurringPayments
-      .filter((r) => r.status === "active")
-      .filter((r) => new Date(r.nextDueDate) <= weekAhead)
-      .sort((a, b) => new Date(a.nextDueDate) - new Date(b.nextDueDate))
-      .slice(0, 5)
-      .map((r) => ({
-        id: r._id,
-        name: r.name,
-        amount: r.amount,
-        frequency: r.frequency,
-        dueLabel: dueLabel(r.nextDueDate),
-        type: r.category?.toLowerCase().includes("internet")
-          ? "internet"
-          : r.category?.toLowerCase().includes("gym") ||
-            r.category?.toLowerCase().includes("fitness")
-          ? "gym"
-          : "subscription",
-      }));
-  }, [recurringPayments]);
-
-  // ── Handlers ────────────────────────────────────────────────────────────
-  const handleMarkPaid = async (id) => {
-    try {
-      const rp = recurringPayments.find((r) => r._id === id);
-      await markRecurringPaymentPaid(id, rp?.nextDueDate);
-      queryClient.invalidateQueries({ queryKey: ["recurringPayments"] });
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-    } catch (err) {
-      console.error("Mark paid failed:", err);
-    }
-  };
-
-  const isLoading = txLoading || rpLoading;
+  const profileInitial = (user?.username || user?.email || "P").trim().charAt(0).toUpperCase();
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -211,17 +109,11 @@ export default function HomePage({ user, onSignOut }) {
           </nav>
 
           <div className="flex shrink-0 items-center gap-3">
-            <button
-              onClick={() => navigate("/recurring-payments")}
-              className="hidden rounded-lg border border-neutral-300 px-3 py-2.5 text-sm font-medium hover:bg-neutral-100 sm:block"
-            >
+            <button className="hidden rounded-lg border border-neutral-300 px-3 py-2.5 text-sm font-medium hover:bg-neutral-100 sm:block">
               + Bill / Sub
             </button>
 
-            <button
-              onClick={() => navigate("/transactions")}
-              className="rounded-lg bg-black px-3 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 sm:px-4"
-            >
+            <button className="rounded-lg bg-black px-3 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 sm:px-4">
               + <span className="hidden sm:inline">Add Transaction</span>
               <span className="sm:hidden">Add</span>
             </button>
@@ -251,9 +143,9 @@ export default function HomePage({ user, onSignOut }) {
             Financial Overview
           </h1>
 
-          {isLoading && (
-            <span className="text-xs text-neutral-400 animate-pulse">Loading…</span>
-          )}
+          <button className="hidden text-sm text-neutral-500 underline underline-offset-4 hover:text-black sm:block">
+            Reset Sample Data
+          </button>
         </div>
 
         <FinancialOverview data={overviewData} />
@@ -262,29 +154,18 @@ export default function HomePage({ user, onSignOut }) {
           {/* Left column */}
           <div className="space-y-5">
             <SpendingCategory
-              categories={categories}
+              categories={sampleCategories}
               totalExpenses={overviewData.totalExpenses}
             />
 
-            <RecentTransactions
-              transactions={recentTransactions}
-              onViewAll={() => navigate("/transactions")}
-            />
+            <RecentTransactions transactions={sampleTransactions} />
           </div>
 
           {/* Right column */}
           <div className="space-y-5">
-            <UpcomingCommitments
-              commitments={upcomingCommitments}
-              onMarkPaid={handleMarkPaid}
-              onManage={() => navigate("/recurring-payments")}
-            />
+            <UpcomingCommitments commitments={sampleCommitments} />
 
-            <QuickActions
-              onAddTransaction={() => navigate("/transactions")}
-              onAddRecurring={() => navigate("/recurring-payments")}
-              onViewAnalytics={() => navigate("/analytics")}
-            />
+            <QuickActions />
           </div>
         </div>
       </main>

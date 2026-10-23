@@ -88,7 +88,7 @@ const generateReminderEmailHtml = ({ username, serviceName, amount, dueDate, day
  * @param {number} daysAhead - How many days ahead to look for due bills (default: 3 days)
  * @returns {Promise<Object>} Summary of alerts sent
  */
-export const checkAndSendDueAlerts = async (daysAhead = 3) => {
+export const checkAndSendDueAlerts = async (daysAhead = 3, userId = null) => {
   console.log(`[PayWise Alerts] Starting check for bills due in next ${daysAhead} days...`);
 
   const now = new Date();
@@ -99,10 +99,13 @@ export const checkAndSendDueAlerts = async (daysAhead = 3) => {
   windowEnd.setHours(23, 59, 59, 999);
 
   // Find active recurring payments due within the window
-  const upcomingPayments = await RecurringPayment.find({
+  const query = {
     status: "active",
     nextDueDate: { $gte: startOfToday, $lte: windowEnd },
-  }).populate("user", "username email");
+  };
+  if (userId) query.user = userId;
+
+  const upcomingPayments = await RecurringPayment.find(query).populate("user", "username email");
 
   console.log(`[PayWise Alerts] Found ${upcomingPayments.length} active bills in due window.`);
 
@@ -115,6 +118,7 @@ export const checkAndSendDueAlerts = async (daysAhead = 3) => {
     // Check if user has an email
     if (!user || !user.email) {
       console.log(`[PayWise Alerts] Skipping item "${item.name}": user has no email address`);
+      results.push({ id: item._id, name: item.name, status: "skipped", reason: "No email address is linked to this user." });
       continue;
     }
 
@@ -123,6 +127,7 @@ export const checkAndSendDueAlerts = async (daysAhead = 3) => {
       const lastAlertDate = new Date(item.lastAlertSentDate);
       if (lastAlertDate >= startOfToday) {
         console.log(`[PayWise Alerts] Skipping "${item.name}" for ${user.email}: already alerted today`);
+        results.push({ id: item._id, name: item.name, userEmail: user.email, status: "skipped", reason: "An alert was already sent today." });
         continue;
       }
     }

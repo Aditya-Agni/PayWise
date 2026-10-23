@@ -10,6 +10,7 @@ import {
   updateRecurringPayment,
   deleteRecurringPayment,
   markRecurringPaymentPaid,
+  triggerDueAlerts,
 } from "../../services/api.js";
 
 // Baseline sample data if backend has no records yet (matching screenshot)
@@ -87,6 +88,7 @@ export default function RecurringPayments({ user, onSignOut }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [payingId, setPayingId] = useState(null);
+  const [alertFeedback, setAlertFeedback] = useState("");
   const [localFallback, setLocalFallback] = useState(() => {
     const saved = localStorage.getItem("paywise_recurring_fallback");
     if (saved) {
@@ -256,6 +258,27 @@ export default function RecurringPayments({ user, onSignOut }) {
     },
   });
 
+  const alertsMutation = useMutation({
+    mutationFn: () => triggerDueAlerts(3),
+    onSuccess: (result) => {
+      const sent = result?.sentCount ?? 0;
+      const found = result?.totalFound ?? 0;
+      const results = result?.results ?? [];
+      const failed = results.filter((item) => item.status === "failed");
+      const skipped = results.filter((item) => item.status === "skipped");
+      if (sent) {
+        setAlertFeedback(`Sent ${sent} due alert${sent === 1 ? "" : "s"} by email${failed.length ? `; ${failed.length} failed (${failed[0].error})` : ""}.`);
+      } else if (failed.length) {
+        setAlertFeedback(`Found ${found} due bill${found === 1 ? "" : "s"}, but email delivery failed: ${failed[0].error}`);
+      } else if (skipped.length) {
+        setAlertFeedback(skipped[0].reason);
+      } else {
+        setAlertFeedback("No real bills are due in the next 3 days. Sample fallback bills do not send email alerts.");
+      }
+    },
+    onError: (error) => setAlertFeedback(error.message || "Could not trigger due alerts."),
+  });
+
   // Handlers
   const handleAddNew = () => {
     setSelectedPayment(null);
@@ -411,6 +434,15 @@ export default function RecurringPayments({ user, onSignOut }) {
               + Add Commitment
             </button>
 
+            <button
+              type="button"
+              onClick={() => { setAlertFeedback(""); alertsMutation.mutate(); }}
+              disabled={alertsMutation.isPending}
+              className="rounded-lg border border-neutral-300 px-3.5 py-2 text-xs font-semibold text-neutral-800 hover:bg-neutral-100 disabled:cursor-wait disabled:opacity-60 transition-colors"
+            >
+              {alertsMutation.isPending ? "Sending…" : "Test Due Alerts"}
+            </button>
+
             <span
               title={user?.username || user?.email || "PayWise user"}
               aria-label="User profile"
@@ -432,6 +464,11 @@ export default function RecurringPayments({ user, onSignOut }) {
 
       {/* Main Content */}
       <main className="mx-auto max-w-[1440px] space-y-6 px-5 py-7 lg:px-10">
+        {alertFeedback && (
+          <p role="status" className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700">
+            {alertFeedback}
+          </p>
+        )}
         {/* Overview Stats Cards */}
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <OverviewCard

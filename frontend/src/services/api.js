@@ -155,6 +155,14 @@ export const markRecurringPaymentPaid = async (id, expectedDueDate) => {
   return result?.data ?? result;
 };
 
+export const triggerDueAlerts = async (daysAhead = 3) => {
+  const result = await request({
+    url: `/recurring-payments/trigger-alerts?daysAhead=${encodeURIComponent(daysAhead)}`,
+    method: "POST",
+  });
+  return result?.data ?? result;
+};
+
 // AI / PayWise Intelligence
 
 export const getSpendingAnalysis = async () => {
